@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from src.api import auth
+import sqlalchemy
+from src import database as db
 
 router = APIRouter(
     prefix="/admin",
@@ -14,5 +16,7 @@ def reset():
     Reset the game state. Gold goes to 100, all potions are removed from
     inventory, and all barrels are removed from inventory. Carts are all reset.
     """
-    return "OK"
 
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    return "OK"

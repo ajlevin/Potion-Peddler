@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from src.api import auth
+import sqlalchemy
+from src import database as db
 
 router = APIRouter(
     prefix="/info",
@@ -17,5 +19,7 @@ def post_time(timestamp: Timestamp):
     """
     Share current time.
     """
-    return "OK"
 
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    return "OK"

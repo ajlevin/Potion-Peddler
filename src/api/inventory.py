@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from src.api import auth
 import math
+import sqlalchemy
+from src import database as db
 
 router = APIRouter(
     prefix="/inventory",
@@ -40,4 +42,6 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
     capacity unit costs 1000 gold.
     """
 
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql_to_execute))
     return "OK"
