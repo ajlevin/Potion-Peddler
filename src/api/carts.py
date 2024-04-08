@@ -81,8 +81,8 @@ def post_visits(visit_id: int, customers: list[Customer]):
     """
     print(customers)
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
     return "OK"
 
 
@@ -90,8 +90,8 @@ def post_visits(visit_id: int, customers: list[Customer]):
 def create_cart(new_cart: Customer):
     """ """
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
     return {"cart_id": 1}
 
 
@@ -103,8 +103,9 @@ class CartItem(BaseModel):
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    # with db.engine.begin() as connection:
+    #     curGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory"))
+    
     return "OK"
 
 
@@ -115,6 +116,6 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
     return {"total_potions_bought": 1, "total_gold_paid": 50}

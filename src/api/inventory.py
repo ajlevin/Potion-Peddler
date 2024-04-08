@@ -42,6 +42,6 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
     capacity unit costs 1000 gold.
     """
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
     return "OK"

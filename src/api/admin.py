@@ -18,5 +18,8 @@ def reset():
     """
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
+        results = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
+        for row in results:    
+            print(row)
+
     return "OK"

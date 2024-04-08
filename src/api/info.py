@@ -20,6 +20,6 @@ def post_time(timestamp: Timestamp):
     Share current time.
     """
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
     return "OK"
