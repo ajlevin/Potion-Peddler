@@ -27,7 +27,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     with db.engine.begin() as connection:
         for barrel in barrels_delivered:
             barrelsUpdated = connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml + ({barrel.ml_per_barrel} * {barrel.quantity})"))
-            goldUpdated = connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - ({barrel.ml_per_barrel} * {barrel.quantity})"))
+            goldUpdated = connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - ({barrel.price} * {barrel.quantity})"))
         
     return "OK"
 
@@ -35,19 +35,24 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
+    skuSGB = "SMALL_GREEN_BARREL"
     for barrel in wholesale_catalog:
         print(barrel, flush=True)
 
     with db.engine.begin() as connection:
-        # curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
         curGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).first()[0]
 
-    if (curGPotions < 10):
-        return [
-            {
-                "sku": "SMALL_GREEN_BARREL",
-                "quantity": 10 - curGPotions,
-            }
-        ]
-    else:
-        return []
+    for barrel in wholesale_catalog:
+        if barrel.sku == skuSGB:
+            if (curGPotions < 10):
+                return [
+                    {
+                        "sku": "SMALL_GREEN_BARREL",
+                        "quantity": min(10 - curGPotions, int(curGold / barrel.price)),
+                    }
+                ]
+            else:
+                return []
+            
+    return []

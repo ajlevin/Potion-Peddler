@@ -21,8 +21,9 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
     print(f"potions delievered: {potions_delivered} order_id: {order_id}")
 
     with db.engine.begin() as connection:
-        curGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory"))
-    print(curGPotions)
+        for potion in potions_delivered:
+            potionsUpdated = connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_potions = num_green_potions + ({potion.type[1]} / 100 * {potion.quantity})"))
+            mlUpdated = connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml - ({potion.type[1]} * {potion.quantity})"))
     
     return "OK"
 
@@ -41,8 +42,7 @@ def get_bottle_plan():
     with db.engine.begin() as connection:
         curGml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
 
-    gPAmount = int(curGml % 100)
-    # subtract ml of gPAmount * 100
+    gPAmount = int(curGml / 100)
 
     return [
             {
