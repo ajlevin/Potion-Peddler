@@ -23,9 +23,9 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
     with db.engine.begin() as connection:
         for potion in potions_delivered:
             potionsUpdated = connection.execute(sqlalchemy.text(
-                "UPDATE global_inventory SET num_green_potions = num_green_potions + ({potion.type[1]} / 100 * {potion.quantity})"))
+                f"UPDATE global_inventory SET num_green_potions = num_green_potions + ({potion.type[1]} / 100 * {potion.quantity})"))
             mlUpdated = connection.execute(sqlalchemy.text(
-                "UPDATE global_inventory SET num_green_ml = num_green_ml - ({potion.type[1]} * {potion.quantity})"))
+                f"UPDATE global_inventory SET num_green_ml = num_green_ml - ({potion.type[1]} * {potion.quantity})"))
     
     return "OK"
 
