@@ -51,12 +51,8 @@ async def validation_exception_handler(request, exc):
     for error in exc_json:
         response['message'].append(f"{error['loc']}: {error['msg']}")
 
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
     return JSONResponse(response, status_code=422)
 
 @app.get("/")
 async def root():
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql_to_execute))
     return {"message": "Welcome to the Central Coast Cauldrons."}

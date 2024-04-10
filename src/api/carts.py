@@ -84,7 +84,7 @@ def post_visits(visit_id: int, customers: list[Customer]):
     with db.engine.begin() as connection:
         for c in customers:
             updateCustomers = connection.execute(sqlalchemy.text(
-                "INSERT INTO customers ('name', 'class', 'level') VALUES ({c.customer_name}, {c.character_class}, {c.level})"))
+                "INSERT INTO customers ('name', 'class', 'level', 'visit_id) VALUES ({c.customer_name}, {c.character_class}, {c.level}, {visit_id})"))
     
     return "OK"
 

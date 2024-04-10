@@ -14,9 +14,6 @@ api_key_header = APIKeyHeader(name="access_token", auto_error=False)
 
 
 async def get_api_key(request: Request, api_key_header: str = Security(api_key_header)):
-    # with db.engine.begin() as connection:
-    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
-
     if api_key_header in api_keys:
         return api_key_header
     else:

@@ -12,13 +12,16 @@ def get_catalog():
     """
 
     with db.engine.begin() as connection:
-        data = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
+        # amntRPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory")).first()[0]
+        amntGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).first()[0]
+        # amntBPotions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).first()[0]
+
     
     return [
             {
                 "sku": "GREEN_POTION_1",
                 "name": "green potion",
-                "quantity": 1,
+                "quantity": amntGPotions,
                 "price": 45,
                 "potion_type": [0, 100, 0, 0],
             }
