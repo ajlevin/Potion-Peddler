@@ -39,17 +39,27 @@ def get_bottle_plan():
     # dark potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
-    # Initial logic: bottle all barrels into red potions.
-
     with db.engine.begin() as connection:
+        curRml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
         curGml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
+        curBml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
 
+    rPAmount = int(curRml / 100)
     gPAmount = int(curGml / 100)
+    bPAmount = int(curBml / 100)
 
     return [
             {
                 "potion_type": [100, 0, 0, 0],
+                "quantity": rPAmount,
+            },
+            {
+                "potion_type": [0, 100, 0, 0],
                 "quantity": gPAmount,
+            },
+            {
+                "potion_type": [0, 0, 100, 0],
+                "quantity": bPAmount,
             }
         ]
 

@@ -37,16 +37,29 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
+    skuSRB = "SMALL_RED_BARREL"
     skuSGB = "SMALL_GREEN_BARREL"
+    skuSBB = "SMALL_BLUE_BARREL"
+
     for barrel in wholesale_catalog:
         print(barrel, flush=True)
 
     with db.engine.begin() as connection:
         curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        curRPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory")).first()[0]
         curGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).first()[0]
+        curBPotions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).first()[0]
 
     for barrel in wholesale_catalog:
-        if barrel.sku == skuSGB:
+        if barrel.sku == skuSRB:
+            if (curRPotions < 10):
+                return [
+                    {
+                        "sku": "SMALL_GREEN_BARREL",
+                        "quantity": min(10 - curRPotions, int(curGold / barrel.price)),
+                    }
+                ]
+        elif barrel.sku == skuSGB:
             if (curGPotions < 10):
                 return [
                     {
@@ -54,7 +67,13 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": min(10 - curGPotions, int(curGold / barrel.price)),
                     }
                 ]
-            else:
-                return []
+        elif barrel.sku == skuSBB:
+            if (curBPotions < 10):
+                return [
+                    {
+                        "sku": "SMALL_GREEN_BARREL",
+                        "quantity": min(10 - curBPotions, int(curGold / barrel.price)),
+                    }
+                ]
             
     return []
