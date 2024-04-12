@@ -31,20 +31,16 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     with db.engine.begin() as connection:
         for barrel in barrels_delivered:
             connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {skumlMap.get(barrel.sku)} = {skumlMap.get(barrel.sku)} + ({barrel.ml_per_barrel} * {barrel.quantity})"))
+                f"UPDATE global_inventory SET {skumlMap.get(barrel.sku)} = {skumlMap.get(barrel.sku)} + ({barrel.ml_per_barrel} * {barrel.quantity}) RETURNING {skumlMap.get(barrel.sku)}"))
             connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET gold = gold - ({barrel.price} * {barrel.quantity})"))
-        
+                f"UPDATE global_inventory SET gold = gold - ({barrel.price} * {barrel.quantity}) RETURNING GOLD"))
+    
     return "OK"
 
 # Gets called once a day
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
-    skuSRB = "SMALL_RED_BARREL"
-    skuSGB = "SMALL_GREEN_BARREL"
-    skuSBB = "SMALL_BLUE_BARREL"
-
     lst = []
 
     for barrel in wholesale_catalog:
@@ -57,7 +53,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         curBPotions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).first()[0]
 
     for barrel in wholesale_catalog:
-        if barrel.sku == skuSRB:
+        if barrel.sku == "SMALL_RED_BARREL":
             if (curRPotions < 10):
                 lst.append(
                     {
@@ -65,7 +61,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": min(10 - curRPotions, int((curGold / 3) / barrel.price)),
                     }
                 )
-        elif barrel.sku == skuSGB:
+        elif barrel.sku == "SMALL_GREEN_BARREL":
             if (curGPotions < 10):
                 lst.append(
                     {
@@ -73,7 +69,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         "quantity": min(10 - curGPotions, int((curGold / 3) / barrel.price)),
                     }
                 )
-        elif barrel.sku == skuSBB:
+        elif barrel.sku == "SMALL_BLUE_BARREL":
             if (curBPotions < 10):
                 lst.append(
                     {
