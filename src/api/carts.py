@@ -98,7 +98,7 @@ def create_cart(new_cart: Customer):
 
     with db.engine.begin() as connection:
         cart_id = connection.execute(sqlalchemy.text(
-            f"INSERT INTO carts ('customer_name', ) VALUES ({new_cart.customer_name} RETURNING cart_id"))
+            f"INSERT INTO carts ('customer_name') VALUES ({new_cart.customer_name} RETURNING cart_id"))
     
     return {"cart_id": cart_id}
 
