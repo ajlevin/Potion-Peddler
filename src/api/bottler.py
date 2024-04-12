@@ -20,12 +20,19 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
     """ """
     print(f"potions delievered: {potions_delivered} order_id: {order_id}")
 
+    typemlMap = {[100, 0, 0, 0] : "num_red_ml",
+               [0, 100, 0, 0] : "num_green_ml",
+               [0, 0, 100, 0] : "num_blue_ml"}
+    typePMap = {[100, 0, 0, 0] : "num_red_potions",
+               [0, 100, 0, 0] : "num_green_potions",
+               [0, 0, 100, 0] : "num_blue_potions"}
+    
     with db.engine.begin() as connection:
         for potion in potions_delivered:
-            potionsUpdated = connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET num_green_potions = num_green_potions + ({potion.type[1]} / 100 * {potion.quantity})"))
-            mlUpdated = connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET num_green_ml = num_green_ml - ({potion.type[1]} * {potion.quantity})"))
+            connection.execute(sqlalchemy.text(
+                f"UPDATE global_inventory SET {typePMap.get(potion.type)} = {typePMap.get(potion.type)} + ({max(potion.type)} / 100 * {potion.quantity})"))
+            connection.execute(sqlalchemy.text(
+                f"UPDATE global_inventory SET {typemlMap.get(potion.type)} = {typemlMap.get(potion.type)} - ({max(potion.type)} * {potion.quantity})"))
     
     return "OK"
 
@@ -64,8 +71,6 @@ def get_bottle_plan():
                 "potion_type": [0, 0, 100, 0],
                 "quantity": bPAmount,
             })
-
-    print(rPAmount, gPAmount, bPAmount)
 
     return lst
 

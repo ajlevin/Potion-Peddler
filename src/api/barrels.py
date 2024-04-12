@@ -24,11 +24,15 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
 
+    skumlMap = {"SMALL_RED_BARREL" : "num_red_ml",
+               "SMALL_GREEN_BARREL" : "num_green_ml",
+               "SMALL_BLUE_BARREL" : "num_blue_ml"}
+
     with db.engine.begin() as connection:
         for barrel in barrels_delivered:
-            barrelsUpdated = connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET num_green_ml = num_green_ml + ({barrel.ml_per_barrel} * {barrel.quantity})"))
-            goldUpdated = connection.execute(sqlalchemy.text(
+            connection.execute(sqlalchemy.text(
+                f"UPDATE global_inventory SET {skumlMap.get(barrel.sku)} = {skumlMap.get(barrel.sku)} + ({barrel.ml_per_barrel} * {barrel.quantity})"))
+            connection.execute(sqlalchemy.text(
                 f"UPDATE global_inventory SET gold = gold - ({barrel.price} * {barrel.quantity})"))
         
     return "OK"
@@ -40,6 +44,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     skuSRB = "SMALL_RED_BARREL"
     skuSGB = "SMALL_GREEN_BARREL"
     skuSBB = "SMALL_BLUE_BARREL"
+
+    lst = []
 
     for barrel in wholesale_catalog:
         print(barrel, flush=True)
@@ -53,27 +59,27 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     for barrel in wholesale_catalog:
         if barrel.sku == skuSRB:
             if (curRPotions < 10):
-                return [
+                lst.append(
                     {
                         "sku": "SMALL_GREEN_BARREL",
                         "quantity": min(10 - curRPotions, int((curGold / 3) / barrel.price)),
                     }
-                ]
+                )
         elif barrel.sku == skuSGB:
             if (curGPotions < 10):
-                return [
+                lst.append(
                     {
                         "sku": "SMALL_GREEN_BARREL",
                         "quantity": min(10 - curGPotions, int((curGold / 3) / barrel.price)),
                     }
-                ]
+                )
         elif barrel.sku == skuSBB:
             if (curBPotions < 10):
-                return [
+                lst.append(
                     {
                         "sku": "SMALL_GREEN_BARREL",
                         "quantity": min(10 - curBPotions, int((curGold / 3) / barrel.price)),
                     }
-                ]
+                )
             
-    return []
+    return lst

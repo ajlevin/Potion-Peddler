@@ -42,7 +42,5 @@ def get_catalog():
                 "price": 45,
                 "potion_type": [0, 0, 100, 0],
             })
-
-    print(amntRPotions, amntGPotions, amntBPotions)
     
     return lst
