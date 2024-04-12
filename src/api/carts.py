@@ -96,8 +96,10 @@ def post_visits(visit_id: int, customers: list[Customer]):
 def create_cart(new_cart: Customer):
     """ """
 
-    # with db.engine.begin() as connection:
-    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
+    with db.engine.begin() as connection:
+        newCart = connection.execute(sqlalchemy.text(
+            f"INSERT INTO carts ('cart_id', 'customer_name', ) VALUES (1, {new_cart.customer_name}"))
+    
     return {"cart_id": 1}
 
 
@@ -109,8 +111,9 @@ class CartItem(BaseModel):
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
 
-    # with db.engine.begin() as connection:
-    #     curGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory"))
+    with db.engine.begin() as connection:
+        addItem = connection.execute(sqlalchemy.text(
+            f"UPDATE carts SET item_sku = num_green_potions + ({potion.type[1]} / 100 * {potion.quantity})"))
     
     return "OK"
 

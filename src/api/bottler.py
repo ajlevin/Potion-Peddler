@@ -39,29 +39,35 @@ def get_bottle_plan():
     # dark potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
+    lst = []
+
     with db.engine.begin() as connection:
         curRml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
         curGml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
         curBml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
 
     rPAmount = int(curRml / 100)
-    gPAmount = int(curGml / 100)
-    bPAmount = int(curBml / 100)
-
-    return [
-            {
+    if rPAmount > 0:
+        lst.append({
                 "potion_type": [100, 0, 0, 0],
                 "quantity": rPAmount,
-            },
-            {
+            })
+    gPAmount = int(curGml / 100)
+    if rPAmount > 0:
+        lst.append({
                 "potion_type": [0, 100, 0, 0],
                 "quantity": gPAmount,
-            },
-            {
+            })
+    bPAmount = int(curBml / 100)
+    if rPAmount > 0:
+        lst.append({
                 "potion_type": [0, 0, 100, 0],
                 "quantity": bPAmount,
-            }
-        ]
+            })
+
+    print(rPAmount, gPAmount, bPAmount)
+
+    return lst
 
 if __name__ == "__main__":
     print(get_bottle_plan())

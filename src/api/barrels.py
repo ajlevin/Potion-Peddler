@@ -56,7 +56,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 return [
                     {
                         "sku": "SMALL_GREEN_BARREL",
-                        "quantity": min(10 - curRPotions, int(curGold / barrel.price)),
+                        "quantity": min(10 - curRPotions, int((curGold / 3) / barrel.price)),
                     }
                 ]
         elif barrel.sku == skuSGB:
@@ -64,7 +64,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 return [
                     {
                         "sku": "SMALL_GREEN_BARREL",
-                        "quantity": min(10 - curGPotions, int(curGold / barrel.price)),
+                        "quantity": min(10 - curGPotions, int((curGold / 3) / barrel.price)),
                     }
                 ]
         elif barrel.sku == skuSBB:
@@ -72,7 +72,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 return [
                     {
                         "sku": "SMALL_GREEN_BARREL",
-                        "quantity": min(10 - curBPotions, int(curGold / barrel.price)),
+                        "quantity": min(10 - curBPotions, int((curGold / 3) / barrel.price)),
                     }
                 ]
             

@@ -16,6 +16,7 @@ def get_catalog():
         amntGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).first()[0]
         amntBPotions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).first()[0]
 
+    print(amntRPotions, amntGPotions, amntBPotions)
     
     return [
             {
