@@ -49,9 +49,9 @@ def get_bottle_plan():
     lst = []
 
     with db.engine.begin() as connection:
-        curRml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
+        curRml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).first()[0]
         curGml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
-        curBml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
+        curBml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).first()[0]
 
     rPAmount = int(curRml / 100)
     if rPAmount > 0:
@@ -60,13 +60,13 @@ def get_bottle_plan():
                 "quantity": rPAmount,
             })
     gPAmount = int(curGml / 100)
-    if rPAmount > 0:
+    if gPAmount > 0:
         lst.append({
                 "potion_type": [0, 100, 0, 0],
                 "quantity": gPAmount,
             })
     bPAmount = int(curBml / 100)
-    if rPAmount > 0:
+    if bPAmount > 0:
         lst.append({
                 "potion_type": [0, 0, 100, 0],
                 "quantity": bPAmount,
