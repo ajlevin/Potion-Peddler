@@ -81,13 +81,13 @@ def post_visits(visit_id: int, customers: list[Customer]):
     """
     print(customers)
 
-    with db.engine.begin() as connection:
-        for c in customers:
-            updateCustomers = connection.execute(sqlalchemy.text(
-                f"INSERT INTO customers ('name', 'class', 'level', 'visit_id)\
-                    VALUES ({c.customer_name}, {c.character_class}, {c.level}, {visit_id}, 1)\
-                        ON CONFLICT DO UPDATE customers SET num_visits = num_visits + 1\
-                            WHERE name = {c.customer_name}"))
+    # with db.engine.begin() as connection:
+    #     for c in customers:
+    #         updateCustomers = connection.execute(sqlalchemy.text(
+    #             f"INSERT INTO customers ('name', 'class', 'level', 'visit_id)\
+    #                 VALUES ({c.customer_name}, {c.character_class}, {c.level}, {visit_id}, 1)\
+    #                     ON CONFLICT DO UPDATE customers SET num_visits = num_visits + 1\
+    #                         WHERE name = {c.customer_name}"))
     
     return "OK"
 
