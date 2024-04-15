@@ -20,19 +20,17 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
     """ """
     print(f"potions delievered: {potions_delivered} order_id: {order_id}")
 
-    typemlMap = {[100, 0, 0, 0] : "num_red_ml",
-               [0, 100, 0, 0] : "num_green_ml",
-               [0, 0, 100, 0] : "num_blue_ml"}
-    typePMap = {[100, 0, 0, 0] : "num_red_potions",
-               [0, 100, 0, 0] : "num_green_potions",
-               [0, 0, 100, 0] : "num_blue_potions"}
+    typePs = ["num_red_potions", "num_green_potions", "num_blue_potions"]
+    typemls = ["num_red_ml", "num_green_ml", "num_blue_ml"]
     
     with db.engine.begin() as connection:
         for potion in potions_delivered:
             connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {typePMap.get(potion.type)} = {typePMap.get(potion.type) + ((max(potion.type) / 100) * potion.quantity)}"))
+                f"UPDATE global_inventory SET {typePs[potion.potion_type.index(max(potion.potion_type))]} = \
+                {typePs[potion.potion_type.index(max(potion.potion_type))]} + {((max(potion.potion_type) / 100) * potion.quantity)}"))
             connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {typemlMap.get(potion.type)} = {typemlMap.get(potion.type) - (max(potion.type) * potion.quantity)}"))
+                f"UPDATE global_inventory SET {typemls[potion.potion_type.index(max(potion.potion_type))]} = \
+                {typemls[potion.potion_type.index(max(potion.potion_type))]} - {(max(potion.potion_type) * potion.quantity)}"))
     
     return "OK"
 

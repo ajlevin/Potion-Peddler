@@ -31,7 +31,8 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     with db.engine.begin() as connection:
         for barrel in barrels_delivered:
             updatedml = connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {skumlMap.get(barrel.sku)} = {skumlMap.get(barrel.sku) + (barrel.ml_per_barrel * barrel.quantity)} RETURNING {skumlMap.get(barrel.sku)}"))
+                f"UPDATE global_inventory SET {skumlMap.get(barrel.sku)} = \
+                {skumlMap.get(barrel.sku)} + {(barrel.ml_per_barrel * barrel.quantity)} RETURNING {skumlMap.get(barrel.sku)}"))
             updatedGold = connection.execute(sqlalchemy.text(
                 f"UPDATE global_inventory SET gold = gold - ({barrel.price * barrel.quantity}) RETURNING gold"))
     
