@@ -55,7 +55,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
     for barrel in wholesale_catalog:
         if barrel.sku == "SMALL_RED_BARREL":
-            if (curRPotions < 10):
+            if (curRPotions < 10 and min(10 - curRPotions, int((curGold / 3) / barrel.price)) > 0):
                 lst.append(
                     {
                         "sku": "SMALL_GREEN_BARREL",
@@ -63,7 +63,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     }
                 )
         elif barrel.sku == "SMALL_GREEN_BARREL":
-            if (curGPotions < 10):
+            if (curGPotions < 10 and min(10 - curGPotions, int((curGold / 3) / barrel.price)) > 0):
                 lst.append(
                     {
                         "sku": "SMALL_GREEN_BARREL",
@@ -71,7 +71,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     }
                 )
         elif barrel.sku == "SMALL_BLUE_BARREL":
-            if (curBPotions < 10):
+            if (curBPotions < 10 and min(10 - curBPotions, int((curGold / 3) / barrel.price)) > 0):
                 lst.append(
                     {
                         "sku": "SMALL_GREEN_BARREL",
