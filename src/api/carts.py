@@ -100,7 +100,7 @@ def create_cart(new_cart: Customer):
         cart_id = connection.execute(sqlalchemy.text(
             f"INSERT INTO carts (customer_name) VALUES ('{new_cart.customer_name}') RETURNING cart_id"))
     
-    return {"cart_id": cart_id}
+    return {"cart_id": cart_id.first()[0]}
 
 
 class CartItem(BaseModel):
@@ -125,7 +125,13 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
 
+    f = open("testLog.txt", "a")
+    f.write(f"cart_id: {cart_id}, payment: {cart_checkout.payment}")
+    f.close()
+
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(f"SELECT * FROM cart_items WHERE cart_id = {cart_id}"))
+        for row in result:
+            print(row)
     
     return {"total_potions_bought": 1, "total_gold_paid": 45}
