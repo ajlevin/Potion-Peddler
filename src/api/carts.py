@@ -125,13 +125,13 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
 
-    f = open("testLog.txt", "a")
-    f.write(f"cart_id: {cart_id}, payment: {cart_checkout.payment}")
-    f.close()
+    totalCost = 0
+    totalCount = 0
 
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(f"SELECT * FROM cart_items WHERE cart_id = {cart_id}"))
         for row in result:
-            print(row)
+            totalCount += row.quantity
+            totalCost += (row.quantity * connection.execute(sqlalchemy.text(f"SELECT price FROM potions WHERE item_sku = '{row.item}'")).first()[0])
     
-    return {"total_potions_bought": 1, "total_gold_paid": 45}
+    return {"total_potions_bought": totalCount, "total_gold_paid": totalCost}
