@@ -20,7 +20,7 @@ def get_catalog():
 
     if amntRPotions > 0:
         lst.append({
-                "sku": "RED_POTION_1",
+                "sku": "RED",
                 "name": "red potion",
                 "quantity": amntRPotions,
                 "price": 45,
@@ -28,7 +28,7 @@ def get_catalog():
             })
     if amntGPotions > 0:
         lst.append({
-                "sku": "GREEN_POTION_1",
+                "sku": "GREEN",
                 "name": "green potion",
                 "quantity": amntGPotions,
                 "price": 45,
@@ -36,7 +36,7 @@ def get_catalog():
             })
     if amntBPotions > 0:
         lst.append({
-                "sku": "BLUE_POTION_1",
+                "sku": "BLUE",
                 "name": "blue potion",
                 "quantity": amntBPotions,
                 "price": 45,
