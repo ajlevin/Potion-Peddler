@@ -80,14 +80,6 @@ def post_visits(visit_id: int, customers: list[Customer]):
     Which customers visited the shop today?
     """
     print(customers)
-
-    # with db.engine.begin() as connection:
-    #     for c in customers:
-    #         updateCustomers = connection.execute(sqlalchemy.text(
-    #             f"INSERT INTO customers ('name', 'class', 'level', 'visit_id)\
-    #                 VALUES ({c.customer_name}, {c.character_class}, {c.level}, {visit_id}, 1)\
-    #                     ON CONFLICT DO UPDATE customers SET num_visits = num_visits + 1\
-    #                         WHERE name = {c.customer_name}"))
     
     return "OK"
 
@@ -113,7 +105,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
 
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text(
-            f"INSERT INTO cart_items (cart_id, item, quantity) VALUES ({cart_id}, '{item_sku}', {cart_item.quantity})"))
+            f"INSERT INTO cart_items (cart_id, item_sku, quantity) VALUES ({cart_id}, '{item_sku}', {cart_item.quantity})"))
     
     return "OK"
 
@@ -129,9 +121,11 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     totalCount = 0
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(f"SELECT * FROM cart_items WHERE cart_id = {cart_id}"))
-        for row in result:
-            totalCount += row.quantity
-            totalCost += (row.quantity * connection.execute(sqlalchemy.text(f"SELECT price FROM potions WHERE item_sku = '{row.item}'")).first()[0])
+        cart_items = connection.execute(sqlalchemy.text(f"SELECT * FROM cart_items WHERE cart_id = {cart_id}"))
+        for item in cart_items:
+            connection.execute(sqlalchemy.text(f"UPDATE potions SET quantity = quantity - {item.quantity} WHERE item_sku = {item.item_sku}"))
+            totalCount += item.quantity
+            totalCost += (item.quantity * connection.execute(sqlalchemy.text(f"SELECT price FROM potions WHERE item_sku = '{item.item_sku}'")).first()[0])
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = gold + {totalCost}"))
     
     return {"total_potions_bought": totalCount, "total_gold_paid": totalCost}

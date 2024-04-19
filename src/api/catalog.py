@@ -11,36 +11,20 @@ def get_catalog():
     Each unique item combination must have only a single price.
     """
 
+    potionTypes = ["RED", "ORANGE", "YELLOW", "GREEN", "BLUE", "PURPLE", "DARK"]
     lst = []
 
     with db.engine.begin() as connection:
-        amntRPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory")).first()[0]
-        amntGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).first()[0]
-        amntBPotions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).first()[0]
-
-    if amntRPotions > 0:
-        lst.append({
-                "sku": "RED",
-                "name": "red potion",
-                "quantity": amntRPotions,
-                "price": 45,
-                "potion_type": [100, 0, 0, 0],
-            })
-    if amntGPotions > 0:
-        lst.append({
-                "sku": "GREEN",
-                "name": "green potion",
-                "quantity": amntGPotions,
-                "price": 45,
-                "potion_type": [0, 100, 0, 0],
-            })
-    if amntBPotions > 0:
-        lst.append({
-                "sku": "BLUE",
-                "name": "blue potion",
-                "quantity": amntBPotions,
-                "price": 45,
-                "potion_type": [0, 0, 100, 0],
-            })
+        
+        for pt in potionTypes:
+            potionData = connection.execute(sqlalchemy.text(f"SELECT * FROM potions WHERE item_sku = {pt}"))
+            if potionData.inventory > 0:
+                lst.append({
+                    "sku": potionData.item_sku,
+                    "name": potionData.item_sku + " POTION",
+                    "quantity": potionData.inventory,
+                    "price": potionData.price,
+                    "potion_type": [potionData.red, potionData.green, potionData.blue, potionData.dark],
+                })
     
     return lst

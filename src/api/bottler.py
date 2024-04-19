@@ -19,18 +19,17 @@ class PotionInventory(BaseModel):
 def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int):
     """ """
     print(f"potions delievered: {potions_delivered} order_id: {order_id}")
-
-    typePs = ["num_red_potions", "num_green_potions", "num_blue_potions"]
-    typemls = ["num_red_ml", "num_green_ml", "num_blue_ml"]
     
     with db.engine.begin() as connection:
         for potion in potions_delivered:
-            connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {typePs[potion.potion_type.index(max(potion.potion_type))]} = \
-                {typePs[potion.potion_type.index(max(potion.potion_type))]} + {((max(potion.potion_type) / 100) * potion.quantity)}"))
-            connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {typemls[potion.potion_type.index(max(potion.potion_type))]} = \
-                {typemls[potion.potion_type.index(max(potion.potion_type))]} - {(max(potion.potion_type) * potion.quantity)}"))
+            potionData = connection.execute(sqlalchemy.txt(f"SELECT * FROM potions \
+                                                WHERE red_ml = {potion.potion_type[0]} \
+                                                AND green_ml = {potion.potion_type[1]} \
+                                                AND blue_ml = {potion.potion_type[2]} \
+                                                AND dark_ml = {potion.potion_type[3]}")).first()
+            
+            connection.execute(sqlalchemy.txt(f"UPDATE potions SET quantity = quantity + {potion.quantity} WHERE item_sku = {potionData.item_sku}"))
+            connection.execute(sqlalchemy.txt(f"UPDATE global_inventory SET gold = gold + {potion.quantity * potionData.price}"))
     
     return "OK"
 
