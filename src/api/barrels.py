@@ -24,17 +24,19 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
 
-    skumlMap = {"SMALL_RED_BARREL" : "num_red_ml",
-               "SMALL_GREEN_BARREL" : "num_green_ml",
-               "SMALL_BLUE_BARREL" : "num_blue_ml"}
+    # also needs fixing
+
+    skumlMap = ["num_red_ml", "num_green_ml", "num_blue_ml", "num_dark_ml"]
 
     with db.engine.begin() as connection:
         for barrel in barrels_delivered:
-            updatedml = connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {skumlMap.get(barrel.sku)} = \
-                {skumlMap.get(barrel.sku)} + {(barrel.ml_per_barrel * barrel.quantity)} RETURNING {skumlMap.get(barrel.sku)}"))
-            updatedGold = connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET gold = gold - ({barrel.price * barrel.quantity}) RETURNING gold"))
+            # Update ml:
+            connection.execute(sqlalchemy.text(
+                f"UPDATE global_inventory SET {skumlMap[barrel.potion_type.index(max(barrel.potion_type))]} = \
+                {skumlMap[barrel.potion_type.index(max(barrel.potion_type))]} + {(barrel.ml_per_barrel * barrel.quantity)}"))
+            # Update gold:
+            connection.execute(sqlalchemy.text(
+                f"UPDATE global_inventory SET gold = gold - ({barrel.price * barrel.quantity})"))
     
     return "OK"
 
@@ -42,41 +44,59 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
-    lst = []
+
+    lst = [] # needs fixing
+    barrelTemp = {
+        'red' : None,
+        'green' : None,
+        'blue' : None,
+        'dark' : None}
+    barrelSplit = {
+        'large' : barrelTemp.copy(),
+        'medium' : barrelTemp.copy(),
+        'small' : barrelTemp.copy(),
+        'mini' : barrelTemp.copy()
+    }
+    mlAsk = {
+        'red' : 0,
+        'green' : 0,
+        'blue' : 0,
+        'dark' : 0
+    }
+    typeIdxs = mlAsk.keys().copy()
 
     for barrel in wholesale_catalog:
         print(barrel, flush=True)
+        if barrel.ml_per_barrel == 10000:
+            barrelSplit['large'][typeIdxs[barrel.potion_type.index(max(barrel.potion_type))]] = barrel
+        elif barrel.ml_per_barrel == 2500:
+            barrelSplit['medium'][typeIdxs[barrel.potion_type.index(max(barrel.potion_type))]] = barrel
+        elif barrel.ml_per_barrel == 500:
+            barrelSplit['small'][typeIdxs[barrel.potion_type.index(max(barrel.potion_type))]] = barrel
+        else:
+            barrelSplit['mini'][typeIdxs[barrel.potion_type.index(max(barrel.potion_type))]] = barrel
+    
 
     with db.engine.begin() as connection:
         curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
-        curRPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory")).first()[0]
-        curGPotions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).first()[0]
-        curBPotions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).first()[0]
+        potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
+        for potion in potionsData:
+            if potion.quantity == 0:
+                mlAsk['red'] += potion.red
+                mlAsk['green'] += potion.green
+                mlAsk['blue'] += potion.blue
+                mlAsk['dark'] += potion.dark
+        mlAsk = dict(sorted(mlAsk.items(), key=lambda item: item[1]))
 
-    for barrel in wholesale_catalog:
-        if barrel.sku == "SMALL_RED_BARREL":
-            if (min(10 - curRPotions, int((curGold / 3) / barrel.price)) > 0):
+    for bType in mlAsk.keys():
+        for sizedBarrel in barrelSplit.values():
+            if (int(curGold / 4) / sizedBarrel[bType].price) > 0:
                 lst.append(
                     {
-                        "sku": "SMALL_GREEN_BARREL",
-                        "quantity": min(10 - curRPotions, int((curGold / 3) / barrel.price)),
+                        "sku": sizedBarrel[bType].sku,
+                        "quantity": int(curGold / 4) / sizedBarrel[bType].price,
                     }
                 )
-        elif barrel.sku == "SMALL_GREEN_BARREL":
-            if (min(10 - curGPotions, int((curGold / 3) / barrel.price)) > 0):
-                lst.append(
-                    {
-                        "sku": "SMALL_GREEN_BARREL",
-                        "quantity": min(10 - curGPotions, int((curGold / 3) / barrel.price)),
-                    }
-                )
-        elif barrel.sku == "SMALL_BLUE_BARREL":
-            if (min(10 - curBPotions, int((curGold / 3) / barrel.price)) > 0):
-                lst.append(
-                    {
-                        "sku": "SMALL_GREEN_BARREL",
-                        "quantity": min(10 - curBPotions, int((curGold / 3) / barrel.price)),
-                    }
-                )
-            
+                break
+        
     return lst

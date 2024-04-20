@@ -43,12 +43,13 @@ def get_bottle_plan():
     # dark potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
-    lst = []
+    lst = [] # needs fixing -- only does mono potions
 
     with db.engine.begin() as connection:
         curRml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).first()[0]
         curGml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
         curBml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).first()[0]
+        curDml = connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).first()[0]
 
     rPAmount = int(curRml / 100)
     if rPAmount > 0:
@@ -67,6 +68,12 @@ def get_bottle_plan():
         lst.append({
                 "potion_type": [0, 0, 100, 0],
                 "quantity": bPAmount,
+            })
+    dPAmount = int(curDml / 100)
+    if dPAmount > 0:
+        lst.append({
+                "potion_type": [0, 0, 0, 100],
+                "quantity": dPAmount,
             })
 
     return lst
