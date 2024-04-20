@@ -60,31 +60,6 @@ def get_bottle_plan():
                         "quantity": calculatePotionQuantity(potion, curRml, curGml, curBml, curDml),
                     })
     
-    rPAmount = int(curRml / 100)
-    if rPAmount > 0:
-        lst.append({
-                "potion_type": [100, 0, 0, 0],
-                "quantity": rPAmount,
-            })
-    gPAmount = int(curGml / 100)
-    if gPAmount > 0:
-        lst.append({
-                "potion_type": [0, 100, 0, 0],
-                "quantity": gPAmount,
-            })
-    bPAmount = int(curBml / 100)
-    if bPAmount > 0:
-        lst.append({
-                "potion_type": [0, 0, 100, 0],
-                "quantity": bPAmount,
-            })
-    dPAmount = int(curDml / 100)
-    if dPAmount > 0:
-        lst.append({
-                "potion_type": [0, 0, 0, 100],
-                "quantity": dPAmount,
-            })
-
     return lst
 
 def calculatePotionQuantity(potion, curRml, curGml, curBml, curDml):
