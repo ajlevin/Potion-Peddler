@@ -50,7 +50,16 @@ def get_bottle_plan():
         curGml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
         curBml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).first()[0]
         curDml = connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).first()[0]
+        potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
 
+        for potion in potionsData:
+            if potion.quantity <= 2:
+                if potion.red <= curRml and potion.green <= curGml and potion.blue <= curBml and potion.dark <= curDml:
+                    lst.append({
+                        "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
+                        "quantity": calculatePotionQuantity(potion, curRml, curGml, curBml, curDml),
+                    })
+    
     rPAmount = int(curRml / 100)
     if rPAmount > 0:
         lst.append({
@@ -77,6 +86,23 @@ def get_bottle_plan():
             })
 
     return lst
+
+def calculatePotionQuantity(potion, curRml, curGml, curBml, curDml):
+    redUsed = 999999999999
+    greenUsed = 999999999999
+    blueUsed = 999999999999
+    darkUsed = 999999999999
+
+    if potion.red > 0:
+        redUsed = int((curRml / 2) / potion.red)
+    if potion.green > 0:
+        greenUsed = int((curGml / 2) / potion.green)
+    if potion.blue > 0:
+        blueUsed = int((curBml / 2) / potion.blue)
+    if potion.dark > 0:
+        darkUsed = int((curDml / 2) / potion.dark)
+    
+    return min(redUsed, greenUsed, blueUsed, darkUsed)
 
 if __name__ == "__main__":
     print(get_bottle_plan())

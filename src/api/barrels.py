@@ -45,7 +45,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
 
-    lst = [] # needs fixing
+    lst = []
     barrelTemp = {
         'red' : None,
         'green' : None,
