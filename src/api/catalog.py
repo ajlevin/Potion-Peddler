@@ -16,7 +16,7 @@ def get_catalog():
     with db.engine.begin() as connection:
         
             potionsData = connection.execute(sqlalchemy.text(f"SELECT * FROM potions"))
-            for potion in potionsData
+            for potion in potionsData:
                 if potion.inventory > 0:
                     lst.append({
                         "sku": potion.item_sku,
