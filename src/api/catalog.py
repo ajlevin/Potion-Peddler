@@ -23,7 +23,7 @@ def get_catalog():
                         "name": potion.item_sku + " POTION",
                         "quantity": potion.inventory,
                         "price": potion.price,
-                        "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
+                        "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],
                     })
     
     return lst

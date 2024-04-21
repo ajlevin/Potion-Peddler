@@ -63,7 +63,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         'blue' : 0,
         'dark' : 0
     }
-    typeIdxs = mlAsk.keys().copy()
+    typeIdxs = list(mlAsk.keys())
 
     for barrel in wholesale_catalog:
         print(barrel, flush=True)
@@ -81,20 +81,20 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
         potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
         for potion in potionsData:
-            if potion.quantity == 0:
-                mlAsk['red'] += potion.red
-                mlAsk['green'] += potion.green
-                mlAsk['blue'] += potion.blue
-                mlAsk['dark'] += potion.dark
+            if potion.inventory == 0:
+                mlAsk['red'] += potion.red_ml
+                mlAsk['green'] += potion.green_ml
+                mlAsk['blue'] += potion.blue_ml
+                mlAsk['dark'] += potion.dark_ml
         mlAsk = dict(sorted(mlAsk.items(), key=lambda item: item[1]))
 
     for bType in mlAsk.keys():
         for sizedBarrel in barrelSplit.values():
-            if (int(curGold / 4) / sizedBarrel[bType].price) > 0:
+            if sizedBarrel[bType] is not None and (int(int(curGold / 4) / sizedBarrel[bType].price) > 0):
                 lst.append(
                     {
                         "sku": sizedBarrel[bType].sku,
-                        "quantity": int(curGold / 4) / sizedBarrel[bType].price,
+                        "quantity": min(int(int(curGold / 4) / sizedBarrel[bType].price), sizedBarrel[bType].quantity),
                     }
                 )
                 break
