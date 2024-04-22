@@ -28,12 +28,20 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                                                 AND blue_ml = {potion.potion_type[2]} \
                                                 AND dark_ml = {potion.potion_type[3]}")).first()
             
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potion.quantity * potion.potion_type[0]}"))
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_ml = num_green_ml - {potion.quantity * potion.potion_type[1]}"))
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_ml = num_blue_ml - {potion.quantity * potion.potion_type[2]}"))
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_dark_ml = num_green_ml - {potion.quantity * potion.potion_type[3]}"))
             connection.execute(sqlalchemy.text(f"UPDATE potions SET inventory = inventory + {potion.quantity} WHERE item_sku = '{potionData.item_sku}'"))
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = gold + {potion.quantity * potionData.price}"))
+            connection.execute(
+                sqlalchemy.text(
+                    """
+                    UPDATE global_inventory SET 
+                    num_red_ml = num_red_ml - :red_ml, 
+                    num_green_ml = num_green_ml - :green_ml, 
+                    num_blue_ml = num_blue_ml - :blue_ml, 
+                    num_dark_ml = num_dark_ml - :dark_ml, 
+                    """), 
+                [{"red_ml": potion.quantity * potion.potion_type[0], 
+                  "green_ml": potion.quantity * potion.potion_type[1], 
+                  "blue_ml": potion.quantity * potion.potion_type[2], 
+                  "dark_ml": potion.quantity * potion.potion_type[3]}])
     
     return "OK"
 
@@ -71,6 +79,8 @@ def calculatePotionQuantity(potion, curRml, curGml, curBml, curDml):
     greenUsed = 999999999999
     blueUsed = 999999999999
     darkUsed = 999999999999
+
+    
 
     if potion.red_ml > 0:
         redUsed = int((curRml / 2) / potion.red_ml)
