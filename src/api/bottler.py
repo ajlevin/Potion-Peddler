@@ -34,8 +34,10 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                 "UPDATE potions SET inventory = inventory + :potion_quantity \
                 WHERE red_ml = :red_ml and green_ml = :green_ml and blue_ml = :blue_ml and dark_ml = :dark_ml"),
                 [{"potion_quantity": potion.quantity, 
-                  "red_ml": potion.potion_type[0], "green_ml": potion.potion_type[1],
-                  "red_ml": potion.potion_type[2], "green_ml": potion.potion_type[3]}])
+                  "red_ml": potion.potion_type[0], 
+                  "green_ml": potion.potion_type[1],
+                  "red_ml": potion.potion_type[2], 
+                  "green_ml": potion.potion_type[3]}])
         
         print(f"red_ml: {red_ml_spent} green_ml: {green_ml_spent} blue _ml: {blue_ml_spent} dark_ml: {dark_ml_spent}")        
         connection.execute(
@@ -64,7 +66,7 @@ def get_bottle_plan():
     # dark potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
-    lst = [] # needs fixing -- only does mono potions
+    lst = []
 
     with db.engine.begin() as connection:
         curRml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).first()[0]
@@ -73,32 +75,41 @@ def get_bottle_plan():
         curDml = connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).first()[0]
         potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
 
+        availableRml = curRml
+        availableGml = curGml
+        availableBml = curBml
+        availableDml = curDml
         for potion in potionsData:
             if potion.inventory <= 2:
-                if potion.red_ml <= curRml and potion.green_ml <= curGml and potion.blue_ml <= curBml and potion.dark_ml <= curDml:
+                if potion.red_ml <= availableRml and potion.green_ml <= availableGml \
+                and potion.blue_ml <= availableBml and potion.dark_ml <= availableDml:
+                    brewQuantity = calculatePotionQuantity(potion, availableRml, availableGml, availableBml, availableDml)
                     lst.append({
                         "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],
-                        "quantity": calculatePotionQuantity(potion, curRml, curGml, curBml, curDml),
+                        "quantity": brewQuantity,
                     })
+                    availableRml = potion.red_ml * brewQuantity
+                    availableGml = potion.green_ml * brewQuantity
+                    availableBml = potion.blue_ml * brewQuantity
+                    availableDml = potion.dark_ml * brewQuantity
+                    
     
     return lst
 
-def calculatePotionQuantity(potion, curRml, curGml, curBml, curDml):
+def calculatePotionQuantity(potion, availableRml, availableGml, availableBml, availableDml):
     redUsed = 999999999999
     greenUsed = 999999999999
     blueUsed = 999999999999
     darkUsed = 999999999999
 
-    
-
     if potion.red_ml > 0:
-        redUsed = int((curRml / 2) / potion.red_ml)
+        redUsed = int((availableRml / 2) / potion.red_ml)
     if potion.green_ml > 0:
-        greenUsed = int((curGml / 2) / potion.green_ml)
+        greenUsed = int((availableGml / 2) / potion.green_ml)
     if potion.blue_ml > 0:
-        blueUsed = int((curBml / 2) / potion.blue_ml)
+        blueUsed = int((availableBml / 2) / potion.blue_ml)
     if potion.dark_ml > 0:
-        darkUsed = int((curDml / 2) / potion.dark_ml)
+        darkUsed = int((availableDml / 2) / potion.dark_ml)
     
     return min(redUsed, greenUsed, blueUsed, darkUsed)
 
