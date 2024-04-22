@@ -48,8 +48,9 @@ def get_capacity_plan():
             totalPotionCount += potion.inventory
 
         availableGold = min(curGold - 800, 0)
+        pCap = 0
+        mlCap = 0
         while availableGold >= 1000:
-            pCap = 0
             if totalPotionCount >= 40:
                 pCap += 1
                 availableGold -= 1000
@@ -57,7 +58,6 @@ def get_capacity_plan():
             if availableGold < 1000:
                 break
 
-            mlCap = 0
             if totalmlCount >= 9000:
                 mlCap += 1
                 availableGold -= 1000
