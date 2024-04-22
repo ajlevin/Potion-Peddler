@@ -36,10 +36,35 @@ def get_capacity_plan():
     Start with 1 capacity for 50 potions and 1 capacity for 10000 ml of potion. Each additional 
     capacity unit costs 1000 gold.
     """
+    with db.engine.begin() as connection:
+        curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        
+        mlData = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
+        totalmlCount = mlData.num_red_ml + mlData.num_green_ml + mlData.num_blue_ml + mlData.num_dark_ml
+        
+        totalPotionCount = 0
+        potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
+        for potion in potionsData:
+            totalPotionCount += potion.inventory
 
+        availableGold = min(curGold - 800, 0)
+        while availableGold >= 1000:
+            pCap = 0
+            if totalPotionCount >= 40:
+                pCap += 1
+                availableGold -= 1000
+            
+            if availableGold < 1000:
+                break
+
+            mlCap = 0
+            if totalmlCount >= 9000:
+                mlCap += 1
+                availableGold -= 1000
+            
     return {
-        "potion_capacity": 50,
-        "ml_capacity": 10000
+        "potion_capacity": pCap,
+        "ml_capacity": mlCap,
         }
 
 class CapacityPurchase(BaseModel):
@@ -54,6 +79,10 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
     capacity unit costs 1000 gold.
     """
 
-    # with db.engine.begin() as connection:
-    #     result = connection.execute(sqlalchemy.text(sql_to_execute))
+    with db.engine.begin() as connection:
+        goldSpent = (capacity_purchase.ml_capacity + capacity_purchase.potion_capacity) * 1000
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET potion_capacity = potion_capacity + {capacity_purchase.potion_capacity * 50}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET ml_capacity = ml_capacity + {capacity_purchase.ml_capacity * 10000}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = gold - {goldSpent}"))
+    
     return "OK"
