@@ -94,9 +94,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         else:
             barrelSplit['mini'][typeIdxs[barrel.potion_type.index(max(barrel.potion_type))]] = barrel
     
-
+    availableGold = 0
     with db.engine.begin() as connection:
-        curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        availableGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        
         potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
         for potion in potionsData:
             if potion.inventory == 0:
@@ -108,11 +109,14 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
     for bType in mlAsk.keys():
         for sizedBarrel in barrelSplit.values():
-            if sizedBarrel[bType] is not None and (int(int(curGold / 4) / sizedBarrel[bType].price) > 0):
+            
+            # THIS NO WORK
+            if sizedBarrel[bType] is not None and (int(int(availableGold / 4) / sizedBarrel[bType].price) > 0):
+                barrelQuantity = min(int(int(availableGold / 4) / sizedBarrel[bType].price), sizedBarrel[bType].quantity)
                 lst.append(
                     {
                         "sku": sizedBarrel[bType].sku,
-                        "quantity": min(int(int(curGold / 4) / sizedBarrel[bType].price), sizedBarrel[bType].quantity),
+                        "quantity": barrelQuantity,
                     }
                 )
                 break
