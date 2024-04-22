@@ -54,7 +54,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                 num_dark_ml = num_dark_ml + :dark_ml, 
                 gold = gold - :gold_paid
                 """), 
-            [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml, "gold_paid": gold_paid}])
+            [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml}])
     
     return "OK"
 

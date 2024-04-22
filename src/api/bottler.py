@@ -31,8 +31,11 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             blue_ml_spent += potion.potion_type[2] * potion.quantity
             dark_ml_spent += potion.potion_type[3] * potion.quantity
             connection.execute(sqlalchemy.text(
-                "UPDATE potions SET inventory = inventory + :potion_quantity WHERE item_sku = :item_sku"),
-                [{"potion_quantity": balls, "item_sku": nuts}])
+                "UPDATE potions SET inventory = inventory + :potion_quantity \
+                WHERE red_ml = :red_ml and green_ml = :green_ml and blue_ml = :blue_ml and dark_ml = :dark_ml"),
+                [{"potion_quantity": potion.quantity, 
+                  "red_ml": potion.potion_type[0], "green_ml": potion.potion_type[1],
+                  "red_ml": potion.potion_type[2], "green_ml": potion.potion_type[3]}])
         
         print(f"red_ml: {red_ml_spent} green_ml: {green_ml_spent} blue _ml: {blue_ml_spent} dark_ml: {dark_ml_spent}")        
         connection.execute(
