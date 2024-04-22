@@ -25,8 +25,12 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
 
     with db.engine.begin() as connection:
+        red_ml = 0
+        green_ml = 0
+        blue_ml = 0
+        dark_ml = 0
+
         for barrel_delivered in barrels_delivered:
-            gold_paid += barrel_delivered.price * barrel_delivered.quantity
             if barrel_delivered.potion_type == [1,0,0,0]:
                 red_ml += barrel_delivered.ml_per_barrel * barrel_delivered.quantity
             elif barrel_delivered.potion_type == [0,1,0,0]:
@@ -38,7 +42,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
             else:
                 raise Exception("Invalid potion type")
         
-        print(f"gold_paid: {gold_paid} red_ml: {red_ml} blue_ml: {blue_ml} green_ml: {green_ml} dark_ml: {dark_ml}")
+        print(f"red_ml: {red_ml} green_ml: {green_ml} blue_ml: {blue_ml} dark_ml: {dark_ml}")
 
         connection.execute(
             sqlalchemy.text(
