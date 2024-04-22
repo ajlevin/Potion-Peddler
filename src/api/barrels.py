@@ -24,19 +24,33 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
 
-    # also needs fixing
-
-    skumlMap = ["num_red_ml", "num_green_ml", "num_blue_ml", "num_dark_ml"]
-
     with db.engine.begin() as connection:
-        for barrel in barrels_delivered:
-            # Update ml:
-            connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET {skumlMap[barrel.potion_type.index(max(barrel.potion_type))]} = \
-                {skumlMap[barrel.potion_type.index(max(barrel.potion_type))]} + {(barrel.ml_per_barrel * barrel.quantity)}"))
-            # Update gold:
-            connection.execute(sqlalchemy.text(
-                f"UPDATE global_inventory SET gold = gold - ({barrel.price * barrel.quantity})"))
+        for barrel_delivered in barrels_delivered:
+            gold_paid += barrel_delivered.price * barrel_delivered.quantity
+            if barrel_delivered.potion_type == [1,0,0,0]:
+                red_ml += barrel_delivered.ml_per_barrel * barrel_delivered.quantity
+            elif barrel_delivered.potion_type == [0,1,0,0]:
+                green_ml += barrel_delivered.ml_per_barrel * barrel_delivered.quantity
+            elif barrel_delivered.potion_type == [0,0,1,0]:
+                blue_ml += barrel_delivered.ml_per_barrel * barrel_delivered.quantity
+            elif barrel_delivered.potion_type == [0,0,0,1]:
+                dark_ml += barrel_delivered.ml_per_barrel * barrel_delivered.quantity
+            else:
+                raise Exception("Invalid potion type")
+        
+        print(f"gold_paid: {gold_paid} red_ml: {red_ml} blue_ml: {blue_ml} green_ml: {green_ml} dark_ml: {dark_ml}")
+
+        connection.execute(
+            sqlalchemy.text(
+                """
+                UPDATE global_inventory SET 
+                num_red_ml = num_red_ml + :red_ml, 
+                num_green_ml = num_green_ml + :green_ml, 
+                num_blue_ml = num_blue_ml + :blue_ml, 
+                num_dark_ml = num_dark_ml + :dark_ml, 
+                gold = gold - :gold_paid
+                """), 
+            [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml, "gold_paid": gold_paid}])
     
     return "OK"
 
