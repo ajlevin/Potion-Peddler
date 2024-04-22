@@ -39,7 +39,7 @@ def get_capacity_plan():
     with db.engine.begin() as connection:
         curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
         
-        mlData = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
+        mlData = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory")).first()
         totalmlCount = mlData.num_red_ml + mlData.num_green_ml + mlData.num_blue_ml + mlData.num_dark_ml
         
         totalPotionCount = 0
@@ -47,13 +47,16 @@ def get_capacity_plan():
         for potion in potionsData:
             totalPotionCount += potion.inventory
 
-        availableGold = min(curGold - 800, 0)
+        availableGold = max(curGold - 800, 0)
         pCap = 0
         mlCap = 0
-        while availableGold >= 1000:
+        valsToRun = True
+        while availableGold >= 1000 and valsToRun:
+            valsToRun = False
             if totalPotionCount >= 40:
                 pCap += 1
                 availableGold -= 1000
+                valsToRun = True
             
             if availableGold < 1000:
                 break
@@ -61,6 +64,7 @@ def get_capacity_plan():
             if totalmlCount >= 9000:
                 mlCap += 1
                 availableGold -= 1000
+                valsToRun = True
             
     return {
         "potion_capacity": pCap,
