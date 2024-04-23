@@ -111,14 +111,15 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for sizedBarrel in barrelSplit.values():
             
             # THIS NO WORK
-            if sizedBarrel[bType] is not None and (int(int(availableGold / 4) / sizedBarrel[bType].price) > 0):
-                barrelQuantity = min(int(int(availableGold / 4) / sizedBarrel[bType].price), sizedBarrel[bType].quantity)
+            if sizedBarrel[bType] is not None and (int(availableGold / sizedBarrel[bType].price) > 0):
+                # barrelQuantity = min(int(availableGold / sizedBarrel[bType].price), sizedBarrel[bType].quantity)
                 lst.append(
                     {
                         "sku": sizedBarrel[bType].sku,
-                        "quantity": barrelQuantity,
+                        "quantity": 1,
                     }
                 )
+                availableGold -= sizedBarrel[bType].price
                 break
         
     return lst
