@@ -29,6 +29,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         green_ml = 0
         blue_ml = 0
         dark_ml = 0
+        gold_paid = 0
 
         for barrel_delivered in barrels_delivered:
             gold_paid += barrel_delivered.price * barrel_delivered.quantity
