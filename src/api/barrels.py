@@ -29,10 +29,10 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         green_ml = 0
         blue_ml = 0
         dark_ml = 0
-        gold_paid = 0
+        gold = 0
 
         for barrel_delivered in barrels_delivered:
-            gold_paid += barrel_delivered.price * barrel_delivered.quantity
+            gold -= barrel_delivered.price * barrel_delivered.quantity
             if barrel_delivered.potion_type == [1,0,0,0]:
                 red_ml += barrel_delivered.ml_per_barrel * barrel_delivered.quantity
             elif barrel_delivered.potion_type == [0,1,0,0]:
@@ -43,20 +43,21 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                 dark_ml += barrel_delivered.ml_per_barrel * barrel_delivered.quantity
             else:
                 raise Exception("Invalid potion type")
-        
-        print(f"red_ml: {red_ml} green_ml: {green_ml} blue_ml: {blue_ml} dark_ml: {dark_ml}")
-
+                
         connection.execute(
             sqlalchemy.text(
                 """
-                UPDATE global_inventory SET 
-                num_red_ml = num_red_ml + :red_ml, 
-                num_green_ml = num_green_ml + :green_ml, 
-                num_blue_ml = num_blue_ml + :blue_ml, 
-                num_dark_ml = num_dark_ml + :dark_ml, 
-                gold = gold - :gold_paid
+                INSERT INTO global_ledger
+                (gold_difference, red_difference, green_difference, blue_difference, dark_difference, order_id, order_type)
+                VALUES (:gold, :red_ml, :green_ml, :blue_ml, :dark_ml, :order_id, :order_type)
                 """), 
-            [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml, "gold_paid": gold_paid}])
+            [{  "gold": gold,
+                "red_ml": red_ml, 
+                "green_ml": green_ml, 
+                "blue_ml": blue_ml, 
+                "dark_ml": dark_ml,
+                "order_id": order_id,
+                "order_type": "barreling"}])
     
     return "OK"
 
@@ -98,7 +99,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     availableGold = 0
     with db.engine.begin() as connection:
-        availableGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        availableGold = connection.execute(sqlalchemy.text("SELECT SUM(gold_difference) FROM global_ledger")).first()[0]
         
         potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
         for potion in potionsData:

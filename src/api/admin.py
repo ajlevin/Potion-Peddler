@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
@@ -18,8 +17,7 @@ def reset():
     """
 
     with db.engine.begin() as connection:
-        results = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-        for row in results:    
-            print(row)
+        results = connection.execute(sqlalchemy.text("SELECT SUM(*) FROM global_ledger"))
+        print(results)
 
     return "OK"

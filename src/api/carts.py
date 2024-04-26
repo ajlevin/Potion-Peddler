@@ -123,9 +123,22 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     with db.engine.begin() as connection:
         cart_items = connection.execute(sqlalchemy.text(f"SELECT * FROM cart_items WHERE cart_id = {cart_id}"))
         for item in cart_items:
-            connection.execute(sqlalchemy.text(f"UPDATE potions SET inventory = inventory - {item.quantity} WHERE item_sku = '{item.item_sku}'"))
+            connection.execute(sqlalchemy.text(
+                """
+                INSERT INTO potion_ledger (potion_id, inventory_change, order_id, order_type) 
+                VALUES (:potion_id, :inventory_change, :order_id, :order_type)
+                """),
+                [{"potion_id": item.item_sku,
+                  "inventory_change": item.quantity,
+                  "order_id": cart_id,
+                  "order_type": "checkout"}])
             totalCount += item.quantity
             totalCost += (item.quantity * connection.execute(sqlalchemy.text(f"SELECT price FROM potions WHERE item_sku = '{item.item_sku}'")).first()[0])
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = gold + {totalCost}"))
-    
+        connection.execute(sqlalchemy.text(
+            """
+                INSERT INTO global_ledger (gold_difference, order_id, order_type) VALUES (:totalCost, :order_id, :order_type)
+            """), [{"totalCost": totalCost,
+                    "order_id": cart_id,
+                    "order_type": "checkout"}])
+        
     return {"total_potions_bought": totalCount, "total_gold_paid": totalCost}

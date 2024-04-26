@@ -16,18 +16,27 @@ def get_inventory():
     """ """
     numTotalPotions = 0
     with db.engine.begin() as connection:
-        potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
-        for potion in potionsData:
+        potionTypes = connection.execute(sqlalchemy.text(
+            """
+            SELECT potion_id, SUM(inventory_change) AS inventory FROM potion_ledger GROUP BY potion_id
+            """))
+        for potion in potionTypes:
             numTotalPotions += potion.inventory
         
-        numRml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).first()[0]
-        numGml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).first()[0]
-        numBml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).first()[0]
-        numGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        curGold = connection.execute(sqlalchemy.text("SELECT SUM(gold_difference) FROM global_ledger")).first()[0]
+        curmls = connection.execute(sqlalchemy.text(
+            """
+            SELECT 
+            SUM(red_difference) as red_ml, 
+            SUM(green_difference) as green_ml,
+            SUM(blue_difference) as blue_ml,
+            SUM(dark_difference) as dark_ml 
+            FROM global_ledger
+            """)).first()
+        
+        numTotalml = curmls.red_ml + curmls.green_ml + curmls.blue_ml + curmls.dark_ml
 
-    numTotalml = numRml + numGml + numBml
-
-    return {"number_of_potions": numTotalPotions, "ml_in_barrels": numTotalml, "gold": numGold}
+    return {"number_of_potions": numTotalPotions, "ml_in_barrels": numTotalml, "gold": curGold}
 
 # Gets called once a day
 @router.post("/plan")
@@ -37,17 +46,28 @@ def get_capacity_plan():
     capacity unit costs 1000 gold.
     """
     with db.engine.begin() as connection:
-        curGold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).first()[0]
+        curGold = connection.execute(sqlalchemy.text("SELECT SUM(gold_difference) FROM global_ledger")).first()[0]
         
-        mlData = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory")).first()
-        totalmlCount = mlData.num_red_ml + mlData.num_green_ml + mlData.num_blue_ml + mlData.num_dark_ml
+        curmls = connection.execute(sqlalchemy.text(
+            """
+            SELECT 
+            SUM(red_difference) as red_ml, 
+            SUM(green_difference) as green_ml,
+            SUM(blue_difference) as blue_ml,
+            SUM(dark_difference) as dark_ml 
+            FROM global_ledger
+            """)).first()
+        totalmlCount = curmls.red_ml + curmls.green_ml + curmls.blue_ml + curmls.dark_ml
         
         totalPotionCount = 0
-        potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
-        for potion in potionsData:
+        potionTypes = connection.execute(sqlalchemy.text(
+            """
+            SELECT potion_id, SUM(inventory_change) AS inventory FROM potion_ledger GROUP BY potion_id
+            """))
+        for potion in potionTypes:
             totalPotionCount += potion.inventory
 
-        availableGold = max(curGold - 800, 0)
+        availableGold = max(curGold - 3800, 0)
         pCap = 0
         mlCap = 0
         valsToRun = True
@@ -85,8 +105,15 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
 
     with db.engine.begin() as connection:
         goldSpent = (capacity_purchase.ml_capacity + capacity_purchase.potion_capacity) * 1000
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET potion_capacity = potion_capacity + {capacity_purchase.potion_capacity * 50}"))
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET ml_capacity = ml_capacity + {capacity_purchase.ml_capacity * 10000}"))
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = gold - {goldSpent}"))
+        connection.execute(sqlalchemy.text(
+            """
+            INSERT INTO global_ledger (gold_difference, potion_capacity, ml_capacity, order_id, order_type) 
+            VALUES (:gold_difference, :potion_capacity, :ml_capacity, :order_id, :order_type)
+            """),
+            [{"gold_difference": -goldSpent,
+              "potion_capacity": capacity_purchase.potion_capacity * 50,
+              "ml_capacity": capacity_purchase.ml_capacity * 10000,
+              "order_id": order_id,
+              "order_type": "capacity delivery"}])
     
     return "OK"
