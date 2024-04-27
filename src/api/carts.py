@@ -128,9 +128,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     totalCount = 0
 
     with db.engine.begin() as connection:
-        cart_items = connection.execute(sqlalchemy.text(
-            "SELECT * FROM cart_items WHERE cart_id = :cart_id"),
-            [{"cart_id": cart_id}])
+        cart_items = connection.execute(sqlalchemy.text("SELECT * FROM cart_items WHERE cart_id = :cart_id"), [{"cart_id": cart_id}])
         
         for item in cart_items:
             connection.execute(sqlalchemy.text(
@@ -143,8 +141,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                   "order_id": cart_id,
                   "order_type": "checkout"}])
             potionPrice = connection.execute(sqlalchemy.text(
-                "SELECT price FROM potions WHERE potion_id = :potion_id}"),
-                [{"potion_id": item.potion_id}]).first()[0]
+                "SELECT price FROM potions WHERE potion_id = :potion_id"), [{"potion_id": item.potion_id}]).first()[0]
             totalCost += (item.quantity * potionPrice)
             totalCount += item.quantity
         
