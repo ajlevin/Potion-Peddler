@@ -17,7 +17,10 @@ def reset():
     """
 
     with db.engine.begin() as connection:
-        results = connection.execute(sqlalchemy.text("SELECT SUM(*) FROM global_ledger"))
-        print(results)
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE global_ledger"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE cart_items"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE carts"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE potions"))
 
     return "OK"
