@@ -128,24 +128,30 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     totalCount = 0
 
     with db.engine.begin() as connection:
-        cart_items = connection.execute(sqlalchemy.text(f"SELECT * FROM cart_items WHERE cart_id = {cart_id}"))
+        cart_items = connection.execute(sqlalchemy.text(
+            "SELECT * FROM cart_items WHERE cart_id = :cart_id"),
+            [{"cart_id": cart_id}])
+        
         for item in cart_items:
             connection.execute(sqlalchemy.text(
                 """
                 INSERT INTO potion_ledger (potion_id, inventory_change, order_id, order_type) 
                 VALUES (:potion_id, :inventory_change, :order_id, :order_type)
                 """),
-                [{"potion_id": item.item_sku,
-                  "inventory_change": item.quantity,
+                [{"potion_id": item.potion_id,
+                  "inventory_change": -item.quantity,
                   "order_id": cart_id,
                   "order_type": "checkout"}])
+            potionPrice = connection.execute(sqlalchemy.text(
+                "SELECT price FROM potions WHERE potion_id = :potion_id}"),
+                [{"potion_id": item.potion_id}]).first()[0]
+            totalCost += (item.quantity * potionPrice)
             totalCount += item.quantity
-            totalCost += (item.quantity * connection.execute(sqlalchemy.text(f"SELECT price FROM potions WHERE item_sku = '{item.item_sku}'")).first()[0])
+        
         connection.execute(sqlalchemy.text(
-            """
-                INSERT INTO global_ledger (gold_difference, order_id, order_type) VALUES (:totalCost, :order_id, :order_type)
-            """), [{"totalCost": totalCost,
-                    "order_id": cart_id,
-                    "order_type": "checkout"}])
+            "INSERT INTO global_ledger (gold_difference, order_id, order_type) VALUES (:totalCost, :order_id, :order_type)"), 
+            [{"totalCost": totalCost,
+              "order_id": cart_id,
+              "order_type": "checkout"}])
         
     return {"total_potions_bought": totalCount, "total_gold_paid": totalCost}
