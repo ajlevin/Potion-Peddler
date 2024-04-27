@@ -17,15 +17,20 @@ def reset():
     """
 
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("TRUNCATE TABLE global_ledger"))
-        connection.execute(sqlalchemy.text("TRUNCATE TABLE cart_items"))
-        connection.execute(sqlalchemy.text("TRUNCATE TABLE carts"))
-        connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE global_ledger CASCADE"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE cart_items CASCADE"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE carts CASCADE"))
+        connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger CASCADE"))
         
         connection.execute(sqlalchemy.text(
-            "INSERT INTO global_ledger (gold_difference, order_type) VALUES (:totalCost, :order_type)"), 
+            """
+            INSERT INTO global_ledger (gold_difference, order_type, potion_capacity, ml_capacity) 
+            VALUES (:totalCost, :order_type, :potion_capacity, :ml_capacity)
+            """), 
             [{"totalCost": 100,
-              "order_type": "reset"}])
+              "order_type": "reset",
+              "potion_capacity": 50,
+              "ml_capacity": 10000}])
 
 
     return "OK"
