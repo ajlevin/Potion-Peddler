@@ -100,14 +100,20 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     availableGold = 0
     with db.engine.begin() as connection:
         availableGold = connection.execute(sqlalchemy.text("SELECT SUM(gold_difference) FROM global_ledger")).first()[0]
+        potionTypes = connection.execute(sqlalchemy.text(
+            """
+            SELECT potion_id, SUM(inventory_change) AS inventory FROM potion_ledger GROUP BY potion_id
+            """))
         
-        potionsData = connection.execute(sqlalchemy.text("SELECT * FROM potions"))
-        for potion in potionsData:
-            if potion.inventory == 0:
-                mlAsk['red'] += potion.red_ml
-                mlAsk['green'] += potion.green_ml
-                mlAsk['blue'] += potion.blue_ml
-                mlAsk['dark'] += potion.dark_ml
+        for potion in potionTypes:
+            if potion.inventory <= 1:
+                potionData = connection.execute(sqlalchemy.text("SELECT * from potions WHERE potion_id = :potion_id"),
+                                            [{"potion_id": potion.potion_id}]).first()
+                mlAsk['red'] += potionData.red_ml
+                mlAsk['green'] += potionData.green_ml
+                mlAsk['blue'] += potionData.blue_ml
+                mlAsk['dark'] += potionData.dark_ml
+
         mlAsk = dict(sorted(mlAsk.items(), key=lambda item: item[1]))
 
     for bType in mlAsk.keys():
