@@ -90,9 +90,10 @@ def create_cart(new_cart: Customer):
 
     with db.engine.begin() as connection:
         cart_id = connection.execute(sqlalchemy.text(
-            f"INSERT INTO carts (customer_name) VALUES ('{new_cart.customer_name}') RETURNING cart_id"))
+            "INSERT INTO carts (customer_name) VALUES (:customer_name) RETURNING cart_id"),
+            [{"customer_name": new_cart.customer_name}]).first()[0]
     
-    return {"cart_id": cart_id.first()[0]}
+    return {"cart_id": cart_id}
 
 
 class CartItem(BaseModel):
@@ -104,8 +105,14 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
 
     with db.engine.begin() as connection:
+        potion_id = connection.execute(sqlalchemy.text(
+            "SELECT potion_id FROM potions WHERE item_sku = :item_sku"),
+            [{"item_sku": item_sku}]).first()[0]
         connection.execute(sqlalchemy.text(
-            f"INSERT INTO cart_items (cart_id, item_sku, quantity) VALUES ({cart_id}, '{item_sku}', {cart_item.quantity})"))
+            "INSERT INTO cart_items (cart_id, potion_id, quantity) VALUES (:cart_id, :potion_id, :quantity)"),
+            [{"cart_id": cart_id,
+              "potion_id": potion_id,
+              "quantity": cart_item.quantity}])
     
     return "OK"
 
