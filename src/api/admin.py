@@ -21,6 +21,11 @@ def reset():
         connection.execute(sqlalchemy.text("TRUNCATE TABLE cart_items"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE carts"))
         connection.execute(sqlalchemy.text("TRUNCATE TABLE potion_ledger"))
-        connection.execute(sqlalchemy.text("TRUNCATE TABLE potions"))
+        
+        connection.execute(sqlalchemy.text(
+            "INSERT INTO global_ledger (gold_difference, order_type) VALUES (:totalCost, :order_type)"), 
+            [{"totalCost": 100,
+              "order_type": "reset"}])
+
 
     return "OK"
