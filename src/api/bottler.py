@@ -85,31 +85,30 @@ def get_bottle_plan():
         curGml = connection.execute(sqlalchemy.text("SELECT SUM(green_difference) FROM global_ledger")).first()[0]
         curBml = connection.execute(sqlalchemy.text("SELECT SUM(blue_difference) FROM global_ledger")).first()[0]
         curDml = connection.execute(sqlalchemy.text("SELECT SUM(dark_difference) FROM global_ledger")).first()[0]
-        potionTypes = connection.execute(sqlalchemy.text(
-            """
-            SELECT potion_id, SUM(inventory_change) AS inventory FROM potion_ledger GROUP BY potion_id
-            """))
+        potionData = connection.execute(sqlalchemy.text("SELECT * from potions"))
 
         availableRml = curRml
         availableGml = curGml
         availableBml = curBml
         availableDml = curDml
-        for potion in potionTypes:
-            if potion.inventory <= 2:
-                potionData = connection.execute(sqlalchemy.text("SELECT * from potions WHERE potion_id = :potion_id"),
-                                            [{"potion_id": potion.potion_id}]).first()
-                
-                if potionData.red_ml <= availableRml and potionData.green_ml <= availableGml \
-                and potionData.blue_ml <= availableBml and potionData.dark_ml <= availableDml:
-                    brewQuantity = calculatePotionQuantity(potionData, availableRml, availableGml, availableBml, availableDml)
-                    lst.append({
-                        "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],
-                        "quantity": brewQuantity,
-                    })
-                    availableRml = potion.red_ml * brewQuantity
-                    availableGml = potion.green_ml * brewQuantity
-                    availableBml = potion.blue_ml * brewQuantity
-                    availableDml = potion.dark_ml * brewQuantity
+
+        for potion in potionData:
+            potionInventory = connection.execute(sqlalchemy.text(
+                "SELECT SUM(inventory_change) AS inventory from potion_ledger WHERE potion_id = :potion_id"),
+                [{"potion_id": potion.potion_id}]).first()
+            if  potionInventory.inventory is None or potionInventory.inventory <= 2:
+                if potion.red_ml <= availableRml and potion.green_ml <= availableGml \
+                and potion.blue_ml <= availableBml and potion.dark_ml <= availableDml:
+                    brewQuantity = calculatePotionQuantity(potion, availableRml, availableGml, availableBml, availableDml)
+                    if brewQuantity > 0:
+                        lst.append({
+                            "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],
+                            "quantity": brewQuantity,
+                        })
+                        availableRml -= potion.red_ml * brewQuantity
+                        availableGml -= potion.green_ml * brewQuantity
+                        availableBml -= potion.blue_ml * brewQuantity
+                        availableDml -= potion.dark_ml * brewQuantity
                     
     
     return lst
