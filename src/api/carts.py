@@ -105,7 +105,8 @@ def search_orders(
             sorted_values = sorted_values.order_by(
                 sqlalchemy.desc(sort_parameter) if sort_order == search_sort_order.desc else sqlalchemy.desc(sort_parameter))
 
-        result = connection.execute(search_values.limit(5))
+        page = 0 if search_page == "" else int(search_page) * 5
+        result = connection.execute(search_values.limit(5).offset(page))
         search_return = []
         for row in result:
             search_return.append(
@@ -117,9 +118,8 @@ def search_orders(
                         "timestamp": row.timestamp,
                     })
         
-        page = 0 if search_page == "" else int(search_page) * 5
-        prev_page = f"{int(page/5) - 1}" if int(page/5) > 1 else ""
-        next_page = f"{int(page/5) + 1}" if (connection.execute(search_values).rowcount - (page)) else ""
+        prev_page = f"{int(page/5) - 1}" if int(page/5) >= 1 else ""
+        next_page = f"{int(page/5) + 1}" if (connection.execute(search_values).rowcount - (page)) > 0 else ""
     
         return ({
                 "previous": prev_page,
