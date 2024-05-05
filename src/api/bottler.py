@@ -96,9 +96,11 @@ def get_bottle_plan():
             potionInventory = connection.execute(sqlalchemy.text(
                 "SELECT SUM(inventory_change) AS inventory from potion_ledger WHERE potion_id = :potion_id"),
                 [{"potion_id": potion.potion_id}]).first()
-            if  potionInventory.inventory is None or potionInventory.inventory <= 2:
+            
+            if  potionInventory.inventory is None or potionInventory.inventory <= 1:
                 if potion.red_ml <= availableRml and potion.green_ml <= availableGml \
                 and potion.blue_ml <= availableBml and potion.dark_ml <= availableDml:
+                    
                     brewQuantity = calculatePotionQuantity(potion, availableRml, availableGml, availableBml, availableDml)
                     if brewQuantity > 0:
                         lst.append({
