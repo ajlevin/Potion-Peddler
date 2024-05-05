@@ -71,6 +71,11 @@ def get_capacity_plan():
         pCap = 0
         mlCap = 0
         valsToRun = True
+        if availableGold >= 4000:
+            pCap = 1
+            mlCap = 1
+            valsToRun = False
+
         while availableGold >= 1000 and valsToRun:
             valsToRun = False
             if totalPotionCount >= 40:
